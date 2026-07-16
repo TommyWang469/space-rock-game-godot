@@ -7,6 +7,7 @@ extends Area2D
 
 # GameMaker ran at 60 fps; per-frame values are converted to per-second.
 const ACCELERATION := 240.0        # 0.05 px/frame^2
+const FRICTION := 120.0            # coast-down px/s^2; half of ACCELERATION
 const MAX_SPEED := 280.0           # ~4.7 px/frame
 const TURN_SPEED := 240.0          # 4 degrees/frame, in degrees/second
 const EDGE_MARGIN := 32.0          # half of the largest ship sprite dimension
@@ -58,6 +59,9 @@ func _physics_process(delta: float) -> void:
 		velocity += Vector2.RIGHT.rotated(rotation) * ACCELERATION * delta
 		velocity = velocity.limit_length(MAX_SPEED)
 		thrusting = true
+	else:
+		# Coasting: bleed off speed until the ship comes to a full stop.
+		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 
 	thrust_particles.emitting = thrusting
 
