@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://dt5l0ftugdais"]
+
+[ext_resource type="Script" uid="uid://bv1esj58lmu04" path="res://scripts/enemy_bullet.gd" id="1_ebullet"]
+[ext_resource type="Texture2D" uid="uid://dwbyqghocyrlc" path="res://sprites/enemy_bullet.png" id="2_ebullettex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ebullet"]
+radius = 5.0
+
+[node name="EnemyBullet" type="Area2D" unique_id=1031911964]
+script = ExtResource("1_ebullet")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=865232322]
+texture = ExtResource("2_ebullettex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1624303763]
+shape = SubResource("CircleShape2D_ebullet")

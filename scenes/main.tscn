@@ -1,0 +1,93 @@
+[gd_scene format=3 uid="uid://dma101q53dxhr"]
+
+[ext_resource type="Script" uid="uid://8c2ucrht8wia" path="res://scripts/game.gd" id="1_game"]
+[ext_resource type="Texture2D" uid="uid://buwo4supajee7" path="res://sprites/background.png" id="2_background"]
+
+[node name="Main" type="Node2D" unique_id=1343419098]
+script = ExtResource("1_game")
+
+[node name="Background" type="Sprite2D" parent="." unique_id=1255462277]
+z_index = -10
+position = Vector2(-160, -100)
+scale = Vector2(1.0197916, 1.0407407)
+texture = ExtResource("2_background")
+centered = false
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1445425267]
+position = Vector2(683, 384)
+
+[node name="RespawnTimer" type="Timer" parent="." unique_id=760892697]
+one_shot = true
+
+[node name="UfoTimer" type="Timer" parent="." unique_id=392175447]
+one_shot = true
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=409921365]
+
+[node name="ScoreLabel" type="Label" parent="HUD" unique_id=795686139]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 400.0
+offset_bottom = 34.0
+text = "Score: 0"
+
+[node name="HighScoreLabel" type="Label" parent="HUD" unique_id=1437118895]
+offset_left = 10.0
+offset_top = 34.0
+offset_right = 400.0
+offset_bottom = 58.0
+text = "High Score: 0"
+
+[node name="LivesLabel" type="Label" parent="HUD" unique_id=1043353358]
+offset_left = 10.0
+offset_top = 58.0
+offset_right = 400.0
+offset_bottom = 82.0
+text = "Lives: 3"
+
+[node name="ControlsLabel" type="Label" parent="HUD" unique_id=624551764]
+offset_left = 10.0
+offset_top = 82.0
+offset_right = 700.0
+offset_bottom = 106.0
+text = "Move: Arrow Keys / WASD    Shoot: Space / Left Click    Pause: Esc / P"
+
+[node name="WeaponLabel" type="Label" parent="HUD" unique_id=266750501]
+offset_left = 10.0
+offset_top = 106.0
+offset_right = 700.0
+offset_bottom = 130.0
+text = "Dual Shot unlocks at 2500 points"
+
+[node name="PowerupLabel" type="Label" parent="HUD" unique_id=1082283294]
+modulate = Color(1, 0.85, 0.4, 1)
+offset_left = 10.0
+offset_top = 130.0
+offset_right = 700.0
+offset_bottom = 154.0
+
+[node name="CenterLabel" type="Label" parent="HUD" unique_id=693946829]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "SHIP DESTROYED
+Respawning..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PausedLabel" type="Label" parent="HUD" unique_id=1224058641 groups=["pause_label"]]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "PAUSED"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="timeout" from="RespawnTimer" to="." method="_on_respawn_timer_timeout"]
+[connection signal="timeout" from="UfoTimer" to="." method="_on_ufo_timer_timeout"]
