@@ -7,7 +7,7 @@ extends Area2D
 
 # GameMaker ran at 60 fps; per-frame values are converted to per-second.
 const ACCELERATION := 240.0        # 0.05 px/frame^2
-const MAX_SPEED := 280.0         # 8 px/frame
+const MAX_SPEED := 280.0           # ~4.7 px/frame
 const TURN_SPEED := 240.0          # 4 degrees/frame, in degrees/second
 const EDGE_MARGIN := 32.0          # half of the largest ship sprite dimension
 const ROOM := Vector2(1366, 768)
@@ -69,8 +69,15 @@ func _physics_process(delta: float) -> void:
 	position += velocity * delta
 
 	# Keep the entire ship inside the room, even while it is rotating.
-	position.x = clampf(position.x, EDGE_MARGIN, ROOM.x - EDGE_MARGIN)
-	position.y = clampf(position.y, EDGE_MARGIN, ROOM.y - EDGE_MARGIN)
+	# Hitting an edge kills all momentum, so the ship stops dead instead of
+	# hugging the wall and springing away once it turns.
+	var clamped := Vector2(
+		clampf(position.x, EDGE_MARGIN, ROOM.x - EDGE_MARGIN),
+		clampf(position.y, EDGE_MARGIN, ROOM.y - EDGE_MARGIN),
+	)
+	if clamped != position:
+		velocity = Vector2.ZERO
+	position = clamped
 
 	_handle_shooting()
 	_handle_invincibility(delta)
