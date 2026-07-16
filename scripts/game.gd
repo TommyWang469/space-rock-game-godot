@@ -52,8 +52,10 @@ func _process(delta: float) -> void:
 	lives_label.text = "Lives: %d" % lives
 
 	match weapon_tier:
+		4:
+			weapon_label.text = "Weapon: Omega Radial"
 		3:
-			weapon_label.text = "Weapon: Ultimate Triple Auto"
+			weapon_label.text = "Weapon: Ultimate Triple Auto | Omega unlocks at 10000 points"
 		2:
 			weapon_label.text = "Weapon: Dual Shot | Ultimate unlocks at 5000 points"
 		_:

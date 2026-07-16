@@ -2,16 +2,19 @@ extends Area2D
 ## Port of player_object / fancy_player_object / ultimate_player_object.
 ## The three GameMaker objects shared identical Step code, so here they are
 ## one scene with a `tier` (1 = basic, 2 = dual shot, 3 = ultimate triple auto).
+## Tier 4 (omega radial, a full ring of fire) is new and has no GameMaker origin.
 ## Upgrades: power-up pickups (shield / extra life / rapid fire), thrust
 ## particles, hazard (UFO + enemy bullet) collisions and sound effects.
 
 # GameMaker ran at 60 fps; per-frame values are converted to per-second.
-const ACCELERATION := 240.0        # 0.05 px/frame^2
-const FRICTION := 120.0            # coast-down px/s^2; half of ACCELERATION
+const ACCELERATION := 300.0        # 0.05 px/frame^2
+const FRICTION := 120.0            # coast-down px/s^2; well under ACCELERATION
 const MAX_SPEED := 280.0           # ~4.7 px/frame
 const TURN_SPEED := 240.0          # 4 degrees/frame, in degrees/second
 const EDGE_MARGIN := 32.0          # half of the largest ship sprite dimension
 const ROOM := Vector2(1366, 768)
+
+const RADIAL_SHOTS := 8            # tier 4 fires this many bullets in a full ring
 
 const BulletScene := preload("res://scenes/bullet.tscn")
 
@@ -19,6 +22,16 @@ const TIER_TEXTURES := {
 	1: preload("res://sprites/player.png"),
 	2: preload("res://sprites/fancy_player.png"),
 	3: preload("res://sprites/ultimate_player.png"),
+	4: preload("res://sprites/omega_player.png"),
+}
+
+# The ship art is white line work; colour comes from here. Only the omega ship
+# is tinted, which sets it apart from the rest of the fleet at a glance.
+const TIER_TINTS := {
+	1: Color.WHITE,
+	2: Color.WHITE,
+	3: Color.WHITE,
+	4: Color(1.0, 0.75, 0.35),
 }
 
 enum PowerupType { SHIELD, EXTRA_LIFE, RAPID_FIRE }
@@ -36,8 +49,13 @@ var rapid_fire_time: float = 0.0
 
 func _ready() -> void:
 	add_to_group("player")
-	sprite.texture = TIER_TEXTURES[tier]
+	_apply_tier_visuals()
 	area_entered.connect(_on_area_entered)
+
+
+func _apply_tier_visuals() -> void:
+	sprite.texture = TIER_TEXTURES[tier]
+	sprite.modulate = TIER_TINTS[tier]
 
 
 func _physics_process(delta: float) -> void:
@@ -45,11 +63,13 @@ func _physics_process(delta: float) -> void:
 		shoot_cooldown -= delta
 	rapid_fire_time = maxf(rapid_fire_time - delta, 0.0)
 
-	# Weapon upgrades at 2500 and 5000 points (lives refill on upgrade).
+	# Weapon upgrades at 2500, 5000 and 10000 points (lives refill on upgrade).
 	if game.weapon_tier < 2 and tier == 1 and game.points >= 2500:
 		_upgrade(2)
 	elif game.weapon_tier < 3 and tier == 2 and game.points >= 5000:
 		_upgrade(3)
+	elif game.weapon_tier < 4 and tier == 3 and game.points >= 10000:
+		_upgrade(4)
 
 	# Movement: brake / thrust / turn.
 	var thrusting := false
@@ -90,9 +110,9 @@ func _physics_process(delta: float) -> void:
 func _handle_shooting() -> void:
 	var shoot_now := Input.is_action_just_pressed("shoot")
 
-	# The ultimate ship auto-fires while space is held down;
+	# The ultimate and omega ships auto-fire while space is held down;
 	# the rapid-fire power-up gives every ship held-button auto-fire.
-	if tier == 3 and Input.is_key_pressed(KEY_SPACE):
+	if tier >= 3 and Input.is_key_pressed(KEY_SPACE):
 		shoot_now = true
 	if rapid_fire_time > 0.0 and Input.is_action_pressed("shoot"):
 		shoot_now = true
@@ -103,6 +123,13 @@ func _handle_shooting() -> void:
 	var side := Vector2.RIGHT.rotated(rotation + PI / 2) * 10.0
 
 	match tier:
+		4:
+			# A full ring of fire: RADIAL_SHOTS bullets spread evenly around the
+			# ship. The ring is anchored to `rotation`, so turning aims it.
+			for shot in RADIAL_SHOTS:
+				var angle := rotation + TAU * shot / RADIAL_SHOTS
+				_fire_bullet(position + Vector2.RIGHT.rotated(angle) * 12.0, angle)
+			shoot_cooldown = 0.30
 		3:
 			for shot in [-1, 0, 1]:
 				_fire_bullet(position + side * shot)
@@ -119,10 +146,10 @@ func _handle_shooting() -> void:
 	game.play_sound("shoot", 0.9, 1.1, -12.0)
 
 
-func _fire_bullet(pos: Vector2) -> void:
+func _fire_bullet(pos: Vector2, angle: float = NAN) -> void:
 	var bullet := BulletScene.instantiate()
 	bullet.position = pos
-	bullet.rotation = rotation
+	bullet.rotation = rotation if is_nan(angle) else angle
 	game.add_child(bullet)
 
 
@@ -130,11 +157,11 @@ func _handle_invincibility(delta: float) -> void:
 	if invincible_time > 0.0:
 		invincible_time -= delta
 		var glow_pulse := (sin(Time.get_ticks_msec() * 0.012) + 1.0) * 0.5
-		sprite.modulate = Color.WHITE.lerp(Color.AQUA, 0.4 + glow_pulse * 0.4)
+		sprite.modulate = TIER_TINTS[tier].lerp(Color.AQUA, 0.4 + glow_pulse * 0.4)
 		sprite.modulate.a = 0.7 + glow_pulse * 0.3
 	else:
 		invincible_time = 0.0
-		sprite.modulate = Color.WHITE
+		sprite.modulate = TIER_TINTS[tier]
 
 
 func _upgrade(new_tier: int) -> void:
@@ -142,7 +169,7 @@ func _upgrade(new_tier: int) -> void:
 	game.weapon_tier = new_tier
 	game.lives = 3
 	shoot_cooldown = 0.0
-	sprite.texture = TIER_TEXTURES[new_tier]
+	_apply_tier_visuals()
 	game.play_sound("upgrade")
 	game.spawn_popup(position, "WEAPON UPGRADE!")
 
