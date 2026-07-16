@@ -7,7 +7,7 @@ extends Area2D
 
 # GameMaker ran at 60 fps; per-frame values are converted to per-second.
 const ACCELERATION := 240.0        # 0.05 px/frame^2
-const MAX_SPEED := 240.0         # 8 px/frame
+const MAX_SPEED := 280.0         # 8 px/frame
 const TURN_SPEED := 240.0          # 4 degrees/frame, in degrees/second
 const EDGE_MARGIN := 32.0          # half of the largest ship sprite dimension
 const ROOM := Vector2(1366, 768)
